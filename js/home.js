@@ -1,12 +1,26 @@
-function t_group(group) {
-	var cookies = ''
+function t_company(company) {
+	var domains = ''
 
-	for (var i = 0; i < group.cookies.length; i++) {
-		cookies += `<li>${t_cookie(group.cookies[i])}</li>`
+	for (var i = 0; i < company.domains.length; i++) {
+		domains += `<li>${t_domain(company.domains[i])}</li>`
 	}
 
 	return `<div>
-			<h2>${e(group.domain)}</h2>
+			<h1>${e(company.details.company_id)}: ${e(company.details.name)}</h1>
+			<a href="${e(company.details.privacy_url)}">privacy page</a>
+			<ul>${domains}</ul>
+		</div>`
+}
+
+function t_domain(domain) {
+	var cookies = ''
+
+	for (var i = 0; i < domain.cookies.length; i++) {
+		cookies += `<li>${t_cookie(domain.cookies[i])}</li>`
+	}
+
+	return `<div>
+			<h2>${e(domain.domain)}</h2>
 			<ul>${cookies}</ul>
 		</div>`
 }
@@ -22,6 +36,20 @@ function normalizeDomain(domain) {
 		domain = domain.substring(1)
 	}
 	return domain
+}
+
+function renderCookies(companies) {
+	const main = document.getElementById('main')
+	const ul = document.createElement('ul')
+	main.appendChild(ul)
+
+	Object.keys(companies).forEach(function(company) {
+		const data = companies[company]
+		console.log(data)
+		const li = document.createElement('li')
+		li.innerHTML = t_company(data)
+		ul.appendChild(li)
+	})
 }
 
 function groupCookies(cookies) {
@@ -43,18 +71,16 @@ function groupCookies(cookies) {
 	return groups
 }
 
-chrome.cookies.getAll({}, cookies => {
-	const groups = groupCookies(cookies)
-	console.log(groups)
-	const main = document.getElementById('main')
-	const ul = document.createElement('ul')
-	main.appendChild(ul)
-
-	Object.keys(groups).forEach(function(domain) {
-		const group = groups[domain]
-		const li = document.createElement('li')
-		li.innerHTML = t_group(group)
-		ul.appendChild(li)
+function boot() {
+	loadDB().then(db => {
+		console.log('Ready to eat all your cookies!')
+		chrome.cookies.getAll({}, cookies => {
+			const domains = groupCookies(cookies)
+			const companies = crossReference(db, domains)
+			console.log(companies)
+			renderCookies(companies)
+		})
 	})
-});
+}
 
+boot()
