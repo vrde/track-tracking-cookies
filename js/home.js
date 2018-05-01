@@ -16,11 +16,20 @@ function t_cookie(cookie) {
 	return `${e(cookie.name)}: ${e(cookie.value)} (exp: ${expiration.toString()})`
 }
 
+function normalizeDomain(domain) {
+	domain = domain.toLowerCase()
+	if (domain[0] === '.') {
+		domain = domain.substring(1)
+	}
+	return domain
+}
+
 function groupCookies(cookies) {
 	const groups = {}
+
 	for (var i = 0; i < cookies.length; i++) {
 		const cookie = cookies[i]
-		const domain = cookie.domain
+		const domain = normalizeDomain(cookie.domain)
 
 		if (!groups[domain]) {
 			groups[domain] = {
